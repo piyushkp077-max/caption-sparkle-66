@@ -1,356 +1,73 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Check,
-  ChevronRight,
-  Copy,
-  Download,
-  Flame,
-  Hash,
-  Heart,
-  Home,
-  Instagram,
-  Moon,
-  Palette,
-  Pause,
-  Play,
-  Plus,
-  Search,
-  Share2,
-  Sparkles,
-  Sun,
-  Type,
-  WandSparkles,
-  ImagePlus,
-  RotateCcw,
-} from "lucide-react";
-import { downloadCanvas, renderStoryCanvas } from "@/lib/story-canvas";
+import { Check, Copy, Flame, Heart, Search, Share2, Sparkles, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import kpLogoUrl from "@/assets/kp-logo.png";
-const kpLogoAsset = { url: kpLogoUrl };
-const kpLogo = kpLogoAsset.url;
 import { Button } from "@/components/ui/button";
-import { quotesByCategory } from "@/lib/quotes-data";
+import { FactoryHeader } from "@/components/FactoryHeader";
+import { roastCategories, roastPosts, type RoastPost } from "@/lib/roast-content";
 import { cn } from "@/lib/utils";
-import { StoryMaker } from "@/components/StoryMaker";
-import { FontStudio } from "@/components/FontStudio";
-import { PhotoCaption } from "@/components/PhotoCaption";
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { globalCategories, globalCategoryFor, type CaptionLanguage } from "@/lib/caption-settings";
-import { fitnessQuotes } from "@/lib/fitness-quotes";
-import { ScanSearch } from "lucide-react";
-
-type Quote = {
-  id: number;
-  text: string;
-  translation: string;
-  category: string;
-  views: string;
-  gradient: string;
-};
-
-const categories = globalCategories;
-
-const gradients = ["quote-gradient-one", "quote-gradient-two", "quote-gradient-three", "quote-gradient-four", "quote-gradient-five"];
-
-const quotes: Quote[] = Object.entries(quotesByCategory).flatMap(([quoteCategory, entries], categoryIndex) =>
-  entries.map(([text, translation], entryIndex) => {
-    const id = categoryIndex * 1000 + entryIndex + 1;
-    const viewsValue = 2.6 - ((categoryIndex * 7 + entryIndex * 13) % 220) / 100;
-    return {
-      id,
-      text,
-      translation,
-      category: globalCategoryFor(quoteCategory),
-      views: viewsValue >= 1 ? `${viewsValue.toFixed(1)}M` : `${Math.round(viewsValue * 1000)}K`,
-      gradient: gradients[(categoryIndex + entryIndex) % gradients.length] ?? "quote-gradient-one",
-    };
-  }),
-);
-
-quotes.push(...fitnessQuotes.map(([text, translation], index) => ({ id: 100000 + index, text, translation, category: globalCategories[2], views: "", gradient: gradients[index % gradients.length] ?? "quote-gradient-one" })));
-
-type HashtagGroup = { name: string; tagline: string; gradient: string; tags: string[] };
-
-const hashtagGroups: HashtagGroup[] = [
-  { name: "Viral & Trending", tagline: "For posts that need maximum reach right now", gradient: "quote-gradient-one", tags: ["#viral", "#trending", "#explore", "#explorepage", "#fyp", "#foryou", "#foryoupage", "#instagood", "#instadaily", "#viralpost", "#trendingnow", "#reelsinstagram", "#reelitfeelit", "#instareels", "#love", "#photooftheday"] },
-  { name: "Attitude", tagline: "Bold captions deserve bold tags", gradient: "quote-gradient-three", tags: ["#attitude", "#attitudestatus", "#badshah", "#king", "#boss", "#bosslife", "#swag", "#desi", "#royal", "#selfmade", "#nofilter", "#darrnahi", "#attitudequotes", "#single", "#style", "#confidence"] },
-  { name: "Love & Romantic", tagline: "Couple posts, crushes and soft moments", gradient: "quote-gradient-five", tags: ["#love", "#lovestory", "#romantic", "#couplegoals", "#couples", "#pyar", "#mohabbat", "#ishq", "#dil", "#truelove", "#lovequotes", "#forever", "#soulmate", "#romance", "#together", "#heartbeat"] },
-  { name: "Motivation", tagline: "Hustle, grind and never-give-up energy", gradient: "quote-gradient-two", tags: ["#motivation", "#motivationalquotes", "#hustle", "#grind", "#success", "#nevergiveup", "#dreambig", "#focus", "#hardwork", "#inspiration", "#mindset", "#goals", "#selfbelief", "#positivity", "#discipline", "#winner"] },
-  { name: "Sad & Alone", tagline: "For the quiet, heavy days", gradient: "quote-gradient-four", tags: ["#sad", "#sadquotes", "#alone", "#broken", "#heartbroken", "#pain", "#tears", "#lonely", "#missyou", "#sadshayari", "#feelings", "#hurt", "#depressed", "#goodbye", "#silent", "#lost"] },
-  { name: "Reels/Shorts Special", tagline: "Built for Reels, Shorts and quick viral hits", gradient: "quote-gradient-one", tags: ["#reels", "#reelsinstagram", "#reelsvideo", "#reelitfeelit", "#reelsindia", "#shorts", "#youtubeshorts", "#reelkarofeelkaro", "#viralreels", "#trendingreels", "#reelsofinstagram", "#reelsdaily", "#explorepage", "#viralvideo", "#instavideo", "#contentcreator"] },
-  { name: "Life Reality", tagline: "Real talk about zindagi and truth", gradient: "quote-gradient-two", tags: ["#life", "#zindagi", "#reality", "#truth", "#lifequotes", "#factsoflife", "#deep", "#thoughts", "#lifelessons", "#realtalk", "#waqt", "#kismat", "#lifeislife", "#wisdom", "#experience", "#sach"] },
-  { name: "Friendship", tagline: "Dosti, yaari and squad love", gradient: "quote-gradient-four", tags: ["#friends", "#friendship", "#dosti", "#yaari", "#bff", "#bestfriends", "#squad", "#friendshipgoals", "#yaar", "#dost", "#friendsforever", "#brotherhood", "#masti", "#gang", "#memories", "#foreverfriends"] },
-  { name: "Daily Quotes", tagline: "Good morning posts, thoughts and daily vibes", gradient: "quote-gradient-two", tags: ["#dailyquotes", "#quoteoftheday", "#goodmorning", "#thoughtoftheday", "#suvichar", "#hindiquotes", "#dailymotivation", "#positivevibes", "#morningvibes", "#quotestoliveby", "#aajkasuvichar", "#wordsofwisdom", "#inspirationalquotes", "#dailyinspiration", "#lifequotes", "#quotesdaily"] },
-  { name: "Hindi Shayari", tagline: "दिल की बात, शायरी के साथ", gradient: "quote-gradient-five", tags: ["#shayari", "#hindishayari", "#urdushayari", "#shayarilover", "#dilkibaat", "#hindipoetry", "#ishqshayari", "#sadshayari", "#loveshayari", "#rekhta", "#hindiwriting", "#alfaaz", "#jazbaat", "#lafz", "#hindiquotes", "#shayarikiduniya"] },
-  { name: "Attitude Hindi", tagline: "Desi swag aur royal attitude", gradient: "quote-gradient-three", tags: ["#attitudeshayari", "#hindiattitude", "#nawabi", "#rajputana", "#dabangg", "#khiladi", "#apnatimeaayega", "#swagger", "#desiboy", "#desigirl", "#jalwa", "#rutba", "#bhaigiri", "#attitudeking", "#queenattitude", "#tashan"] },
-  { name: "Love Hindi", tagline: "Pyaar, ishq aur mohabbat ke tags", gradient: "quote-gradient-one", tags: ["#pyaar", "#ishqwala", "#mohabbatein", "#dilse", "#jaanu", "#meriduniya", "#tumhare_liye", "#pehlapyaar", "#loveshayari", "#hindilove", "#premkahani", "#saathhamesha", "#dilkirani", "#humsafar", "#chahat", "#romanticshayari"] },
-  { name: "Sad Hindi", tagline: "Tanhai, dard aur toota dil", gradient: "quote-gradient-four", tags: ["#dardbharishayari", "#tanhai", "#toota_dil", "#bewafa", "#akelapan", "#dard", "#yaadein", "#sadstatus", "#brokenheart", "#aansu", "#judai", "#sadhindi", "#dilkadard", "#khamoshi", "#adhurapyar", "#emotional"] },
-  { name: "Motivation Hindi", tagline: "Mehnat, junoon aur kamyabi", gradient: "quote-gradient-two", tags: ["#hindimotivation", "#mehnat", "#safalta", "#kamyabi", "#junoon", "#sapne", "#himmat", "#lakshya", "#motivationhindi", "#jeetega", "#studymotivation", "#upsc", "#successmantra", "#josh", "#jazba", "#kabhiharnamat"] },
-  { name: "Reels Hindi", tagline: "Desi Reels aur Shorts ke liye", gradient: "quote-gradient-one", tags: ["#reelsindia", "#desireels", "#hindireels", "#bollywood", "#bollywoodreels", "#trendingsongs", "#reelkaro", "#indianreels", "#hindisong", "#reelsbollywood", "#viralindia", "#instaindia", "#mumbai", "#delhi", "#reelsvideo", "#shortsfeed"] },
-];
-
-const creatorBackgrounds = [
-  { name: "Aurora", colors: ["#6366f1", "#ec4899"], className: "quote-gradient-one" },
-  { name: "Ocean", colors: ["#0ea5e9", "#4f46e5"], className: "quote-gradient-two" },
-  { name: "Meadow", colors: ["#10b981", "#0ea5e9"], className: "quote-gradient-four" },
-  { name: "Sunset", colors: ["#f43f5e", "#a855f7"], className: "quote-gradient-three" },
-];
-
-const getCreatorBackground = (index: number) => creatorBackgrounds[index] ?? creatorBackgrounds[0];
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Caption Generate AI" },
-      { name: "description", content: "Generate multilingual AI captions from one prompt, photos or videos. Discover aesthetic, success, fitness and still quotes." },
-      { property: "og:title", content: "Caption Generate AI" },
-      { property: "og:description", content: "Create native-language captions and hashtags from text, photos and videos with Caption Generate AI." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: QuotelyApp,
+  head: () => ({ meta: [
+    { title: "Desi Roast Factory — Savage Hindi & Hinglish Roasts" },
+    { name: "description", content: "Discover, copy, save and share fresh desi roasts for friends, family, dating and office banter." },
+    { property: "og:title", content: "Desi Roast Factory" },
+    { property: "og:description", content: "Fresh Hindi and Hinglish burns, ready to copy and share." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
+  component: RoastFactory,
 });
 
-function QuotelyApp() {
+function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [category, setCategory] = useState<string>(globalCategories[0]);
-  const [language, setLanguage] = useState<CaptionLanguage>("English");
+  useEffect(() => { const saved = window.localStorage.getItem("factory-theme"); if (saved === "dark") setTheme("dark"); }, []);
+  useEffect(() => { document.documentElement.classList.toggle("dark", theme === "dark"); window.localStorage.setItem("factory-theme", theme); }, [theme]);
+  return [theme, setTheme] as const;
+}
+
+function RoastFactory() {
+  const [theme, setTheme] = useTheme();
+  const [category, setCategory] = useState<(typeof roastCategories)[number]>("All");
   const [query, setQuery] = useState("");
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [tab, setTab] = useState<"home" | "saved" | "create" | "hashtags" | "fonts" | "ai">("home");
-  const [makerQuote, setMakerQuote] = useState<Quote | null>(null);
+  const [saved, setSaved] = useState<number[]>([]);
+  const [savedOnly, setSavedOnly] = useState(false);
   const [toast, setToast] = useState("");
-  const [speakingId, setSpeakingId] = useState<number | "daily" | null>(null);
-  const [creatorText, setCreatorText] = useState("अपनी कहानी खुद लिखो — दुनिया को बस पढ़ने दो।");
-  const [creatorFont, setCreatorFont] = useState("Fraunces");
-  const [creatorBg, setCreatorBg] = useState(0);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("quotely-theme");
-    const savedFavorites = window.localStorage.getItem("quotely-favorites");
-    if (savedTheme === "dark") setTheme("dark");
-    if (savedFavorites) {
-      try { setFavorites(JSON.parse(savedFavorites)); } catch { setFavorites([]); }
-    }
-  }, []);
+  useEffect(() => { try { setSaved(JSON.parse(window.localStorage.getItem("saved-roasts") ?? "[]")); } catch { setSaved([]); } }, []);
+  const notify = (text: string) => { setToast(text); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => setToast(""), 1800); };
+  const toggleSaved = (id: number) => setSaved((current) => { const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id]; window.localStorage.setItem("saved-roasts", JSON.stringify(next)); notify(next.includes(id) ? "Saved to your collection" : "Removed from saved"); return next; });
+  const copy = async (text: string) => { await navigator.clipboard.writeText(text); notify("Roast copied"); };
+  const share = async (post: RoastPost) => { if (navigator.share) { try { await navigator.share({ title: "Desi Roast Factory", text: post.text }); } catch { return; } } else { await copy(post.text); } };
+  const filtered = useMemo(() => roastPosts.filter((post) => (category === "All" || post.category === category) && (!savedOnly || saved.includes(post.id)) && `${post.text} ${post.translation} ${post.category}`.toLowerCase().includes(query.trim().toLowerCase())), [category, query, saved, savedOnly]);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem("quotely-theme", theme);
-  }, [theme]);
+  return <div className="ambient-page min-h-screen bg-background text-foreground">
+    <FactoryHeader page="factory" theme={theme} onToggleTheme={() => setTheme(theme === "light" ? "dark" : "light")} />
+    <main className="mx-auto max-w-6xl px-4 pb-16">
+      <section className="grid min-h-[340px] content-center border-b border-border py-12 md:grid-cols-[1.3fr_.7fr] md:items-end md:gap-10">
+        <div><p className="flex items-center gap-2 text-xs font-extrabold uppercase text-primary"><Zap className="size-4 fill-current" /> Internet ka roast department</p><h1 className="mt-4 max-w-3xl font-display text-5xl font-semibold leading-[.95] sm:text-6xl md:text-7xl">Scroll less.<br />Burn better.</h1><p className="mt-5 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">Fresh desi comebacks for the group chat, office drama and every friend who asked for it.</p></div>
+        <div className="mt-8 grid grid-cols-2 border-y border-border py-5 md:mt-0"><div><strong className="font-display text-3xl">12</strong><span className="block text-[10px] font-bold uppercase text-muted-foreground">Fresh roasts</span></div><div className="border-l border-border pl-5"><strong className="font-display text-3xl">5</strong><span className="block text-[10px] font-bold uppercase text-muted-foreground">Burn zones</span></div></div>
+      </section>
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
-
-  const visibleQuotes = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    return quotes.filter((quote) => {
-      const categoryMatch = tab === "saved" || quote.category === category;
-      const searchMatch = !normalized || `${quote.text} ${quote.translation} ${quote.category}`.toLowerCase().includes(normalized);
-      const favoriteMatch = tab !== "saved" || favorites.includes(quote.id);
-      return categoryMatch && searchMatch && favoriteMatch;
-    });
-  }, [category, favorites, query, tab]);
-
-  const notify = (message: string) => {
-    setToast(message);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(""), 1800);
-  };
-
-  const copyText = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    notify("Copied clean text");
-  };
-
-  const copyAllHashtags = async (group: HashtagGroup) => {
-    await navigator.clipboard.writeText(group.tags.join(" "));
-    notify(`Copied all ${group.tags.length} hashtags`);
-  };
-
-  const visibleHashtagGroups = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return hashtagGroups;
-    return hashtagGroups.filter((group) => `${group.name} ${group.tags.join(" ")}`.toLowerCase().includes(normalized));
-  }, [query]);
-
-  const toggleFavorite = (id: number) => {
-    setFavorites((current) => {
-      const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
-      window.localStorage.setItem("quotely-favorites", JSON.stringify(next));
-      notify(current.includes(id) ? "Removed from saved" : "Saved to favorites");
-      return next;
-    });
-  };
-
-  const listen = (id: number | "daily", text: string) => {
-    if (!("speechSynthesis" in window)) return notify("Listening is not supported here");
-    if (speakingId === id) {
-      window.speechSynthesis.cancel();
-      setSpeakingId(null);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = /[\u0900-\u097F]/.test(text) ? "hi-IN" : "en-IN";
-    utterance.rate = 0.92;
-    utterance.onend = () => setSpeakingId(null);
-    utterance.onerror = () => setSpeakingId(null);
-    setSpeakingId(id);
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const downloadStory = (text: string, colors: string[], filename: string, font: string) => {
-    downloadCanvas(renderStoryCanvas(text, colors, font), filename);
-    notify("Story image downloaded");
-  };
-
-  const share = async (quote: Quote, channel: "whatsapp" | "instagram") => {
-    if (channel === "whatsapp") {
-      window.open(`https://wa.me/?text=${encodeURIComponent(quote.text)}`, "_blank", "noopener,noreferrer");
-      return;
-    }
-    if (navigator.share) {
-      try { await navigator.share({ text: quote.text, title: "Caption Generate AI" }); } catch { return; }
-    } else {
-      await copyText(quote.text);
-      notify("Caption copied — paste it in Instagram");
-    }
-  };
-
-  const setActiveTab = (next: "home" | "saved" | "create" | "hashtags" | "fonts" | "ai") => {
-    setTab(next);
-    if (next === "home") setCategory(globalCategories[0]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  return (
-    <div className="ambient-page min-h-screen bg-background text-foreground antialiased transition-colors duration-300">
-      <header className="sticky top-0 z-30 border-b border-glass-border bg-glass backdrop-blur-xl">
-        <div className="mx-auto max-w-5xl px-4 pb-3 pt-3">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-            <button className="flex min-w-0 items-center gap-2 text-left" onClick={() => setActiveTab("home")} aria-label="Go home">
-              <img src={kpLogo} alt="KP logo" width={720} height={697} className="size-11 shrink-0 rounded-xl object-contain drop-shadow-lg" />
-              <span className="min-w-0 leading-none"><span className="block font-body text-sm font-bold leading-tight">Caption Generate AI</span><span className="mt-1 block truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Captions, Quotes & Hashtags</span></span>
-            </button>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <Button asChild variant="glass" size="sm" className="rounded-full px-3 text-xs"><a href="/prank-studio" aria-label="Open Prank Studio">🔥 Prank</a></Button>
-              <Button variant="glassIcon" size="icon" className="rounded-full" aria-label="Saved favorites" onClick={() => setActiveTab("saved")}><Heart className={cn(favorites.length > 0 && "fill-primary text-primary")} /></Button>
-              <Button variant="ink" size="icon" className="rounded-full" aria-label="Toggle color theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon /> : <Sun />}</Button>
-            </div>
-          </div>
-          <label className="mt-3 flex items-center gap-2 rounded-full border border-glass-border bg-glass px-3 py-2.5 shadow-glass backdrop-blur-xl">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword…" aria-label="Search quotes" />
-          </label>
-          <LanguageSelector value={language} onChange={setLanguage} />
-          {tab === "home" && <div className="mt-3 grid grid-cols-2 gap-2">
-            {categories.map((item) => <Button key={item} variant={category === item ? "ink" : "glass"} size="sm" className="h-auto min-h-11 whitespace-normal px-2 py-2 text-xs leading-snug" onClick={() => setCategory(item)}>{item}</Button>)}
-          </div>}
+      <section className="sticky top-[65px] z-30 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row">
+          <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-card px-3 py-2.5"><Search className="size-4 text-muted-foreground" /><input className="min-w-0 flex-1 bg-transparent text-sm outline-none" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search the perfect burn…" aria-label="Search roasts" /></label>
+          <Button variant={savedOnly ? "ink" : "outline"} className="rounded-lg" onClick={() => setSavedOnly(!savedOnly)}><Heart className={cn(savedOnly && "fill-current")} /> Saved {saved.length > 0 && `(${saved.length})`}</Button>
         </div>
-      </header>
+        <div className="no-scrollbar mx-auto mt-3 flex max-w-6xl gap-2 overflow-x-auto">{roastCategories.map((item) => <Button key={item} variant={category === item ? "ink" : "glass"} size="pill" onClick={() => setCategory(item)}>{item}</Button>)}</div>
+      </section>
 
-      <main className="mx-auto max-w-5xl px-4 pb-28 pt-4">
-        {tab === "ai" ? (
-          <PhotoCaption language={language} category={category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />
-        ) : tab === "fonts" ? (
-          <FontStudio onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} />
-        ) : tab === "hashtags" ? (
-          <Hashtags groups={visibleHashtagGroups} onCopyAll={copyAllHashtags} />
-        ) : tab === "create" ? (
-          <Creator text={creatorText} setText={setCreatorText} font={creatorFont} setFont={setCreatorFont} background={creatorBg} setBackground={setCreatorBg} onReset={() => { setCreatorText(""); setCreatorFont("Fraunces"); setCreatorBg(0); }} onDownload={() => downloadStory(creatorText, getCreatorBackground(creatorBg)?.colors ?? [], "my-caption-generate-ai.png", creatorFont)} />
-        ) : (
-          <>
-            {tab === "home" && <PhotoCaption mode="prompt" language={language} category={category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
-
-            <section className={cn(tab === "home" ? "mt-6" : "mt-1")}>
-              <div className="flex items-end justify-between gap-4">
-                <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tab === "saved" ? "Your collection" : "Fresh picks"}</p><h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium">{tab === "saved" ? <Heart className="size-5 fill-primary text-primary" /> : <Flame className="size-5 fill-primary text-primary" />}{tab === "saved" ? "Saved Favorites" : "Trending Now"}</h1></div>
-                {tab === "home" && <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">Live <span className="size-1.5 rounded-full bg-primary" /></span>}
-              </div>
-              {visibleQuotes.length ? <div className="mt-4 grid gap-6 md:grid-cols-2">
-                {visibleQuotes.map((quote, index) => <QuoteCard key={quote.id} quote={quote} favorite={favorites.includes(quote.id)} speaking={speakingId === quote.id} delay={Math.min(index, 3)} onCopy={() => copyText(quote.text)} onFavorite={() => toggleFavorite(quote.id)} onListen={() => listen(quote.id, quote.text)} onCreateImage={() => setMakerQuote(quote)} onShare={(channel) => share(quote, channel)} />)}
-              </div> : <div className="mt-12 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-xl">No captions found</h2><p className="mt-1 text-sm text-muted-foreground">Try another keyword or category.</p></div>}
-            </section>
-          </>
-        )}
-      </main>
-
-      <nav className="fixed inset-x-0 bottom-0 z-[999999] border-t border-border bg-background shadow-[0_-8px_30px_oklch(0.2_0.04_270/14%)]" aria-label="Main navigation" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
-        <div className="mx-auto grid max-w-xl grid-cols-6 gap-1 px-3 pt-2">
-          <TabButton active={tab === "home"} label="Home" icon={<Home />} onClick={() => setActiveTab("home")} />
-          <TabButton active={tab === "hashtags"} label="Hashtags" icon={<Hash />} onClick={() => setActiveTab("hashtags")} />
-          <TabButton active={tab === "ai"} label="Media AI" icon={<ScanSearch />} onClick={() => setActiveTab("ai")} />
-          <TabButton active={tab === "fonts"} label="Fonts" icon={<Type />} onClick={() => setActiveTab("fonts")} />
-          <TabButton active={tab === "saved"} label="Saved" icon={<Heart />} onClick={() => setActiveTab("saved")} />
-          <TabButton active={tab === "create"} label="Create" icon={<WandSparkles />} onClick={() => setActiveTab("create")} />
-        </div>
-      </nav>
-      {makerQuote && <StoryMaker text={makerQuote.text} translation={makerQuote.translation} id={makerQuote.id} onClose={() => setMakerQuote(null)} notify={notify} />}
-      {toast && <div role="status" className="toast-in fixed bottom-24 left-1/2 z-[1000001] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-foreground px-4 py-2.5 text-xs font-semibold text-background shadow-elevated"><Check className="size-3.5" />{toast}</div>}
-    </div>
-  );
+      <section className="py-8"><div className="flex items-end justify-between"><div><p className="text-xs font-extrabold uppercase text-primary">{savedOnly ? "Your collection" : "Fresh off the tandoor"}</p><h2 className="mt-1 font-display text-3xl font-semibold">{category === "All" ? "Trending burns" : `${category} roasts`}</h2></div><span className="text-xs font-bold text-muted-foreground">{filtered.length} posts</span></div>
+        {filtered.length ? <div className="mt-6 grid gap-6 md:grid-cols-2">{filtered.map((post) => <RoastCard key={post.id} post={post} saved={saved.includes(post.id)} onSave={() => toggleSaved(post.id)} onCopy={() => copy(post.text)} onShare={() => share(post)} />)}</div> : <div className="py-24 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-2xl">No burns found</h2><p className="mt-1 text-sm text-muted-foreground">Try another category or keyword.</p></div>}
+      </section>
+    </main>
+    {toast && <div role="status" className="toast-in fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background shadow-elevated"><Check className="size-4" />{toast}</div>}
+  </div>;
 }
 
-function Hashtags({ groups, onCopyAll }: { groups: HashtagGroup[]; onCopyAll: (group: HashtagGroup) => void }) {
-  return (
-    <section className="rise">
-      <div className="flex items-end justify-between gap-4">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Boost your reach</p><h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium"><Hash className="size-5 text-primary" />Trending Hashtags</h1></div>
-        <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">Live <span className="size-1.5 rounded-full bg-primary" /></span>
-      </div>
-      {groups.length ? <div className="mt-4 grid gap-5 md:grid-cols-2">
-        {groups.map((group, index) => (
-          <article key={group.name} className="rise overflow-hidden rounded-2xl border border-glass-border bg-glass shadow-glass backdrop-blur-xl" style={{ animationDelay: `${Math.min(index, 3) * 70}ms` }}>
-            <div className={cn("flex items-center justify-between gap-3 px-4 py-3 text-story-foreground", group.gradient)}>
-              <div className="min-w-0"><h2 className="truncate font-display text-lg font-medium">{group.name}</h2><p className="truncate text-[11px] opacity-80">{group.tagline}</p></div>
-              <span className="shrink-0 rounded-full bg-story-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]">{group.tags.length} tags</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5 p-4">
-              {group.tags.map((tag) => <span key={tag} className="rounded-full border border-glass-border bg-background/60 px-2.5 py-1 text-xs font-medium text-muted-foreground">{tag}</span>)}
-            </div>
-            <div className="px-4 pb-4">
-              <Button variant="ink" className="w-full rounded-xl" onClick={() => onCopyAll(group)}><Copy /> Copy All Hashtags</Button>
-            </div>
-          </article>
-        ))}
-      </div> : <div className="mt-12 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-xl">No hashtags found</h2><p className="mt-1 text-sm text-muted-foreground">Try another keyword.</p></div>}
-    </section>
-  );
-}
-
-function QuoteCard({ quote, favorite, speaking, delay, onCopy, onFavorite, onListen, onCreateImage, onShare }: { quote: Quote; favorite: boolean; speaking: boolean; delay: number; onCopy: () => void; onFavorite: () => void; onListen: () => void; onCreateImage: () => void; onShare: (channel: "whatsapp" | "instagram") => void }) {
-  return <article className="rise" style={{ animationDelay: `${delay * 70}ms` }}>
-    <div className={cn("relative min-h-52 overflow-hidden rounded-2xl p-5 text-story-foreground shadow-elevated", quote.gradient)}>
-      <div className="relative flex h-full min-h-42 flex-col justify-between"><div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80"><span>{quote.category}</span><span className="flex items-center gap-2">{quote.views} views<button aria-label={favorite ? "Remove from saved" : "Save caption"} onClick={onFavorite} className="grid size-8 place-items-center rounded-full bg-story-soft transition active:scale-90"><Heart className={cn("size-4", favorite && "fill-current")} /></button></span></div><div><p className={cn("mt-5 text-[24px] font-medium leading-tight", /[\u0900-\u097F]/.test(quote.text) ? "font-hindi" : "font-display")}>“{quote.text}”</p><p className={cn("mt-2 text-sm opacity-80", /[\u0900-\u097F]/.test(quote.translation) && "font-hindi")}>{quote.translation}</p></div></div>
-    </div>
-    <div className="mt-2 grid grid-cols-3 gap-1.5">
-      <Button variant="glass" size="sm" className="min-w-0 rounded-full px-2" onClick={onCopy}><Copy /> Copy</Button>
-      <Button size="sm" className="min-w-0 rounded-full bg-whatsapp px-2 text-whatsapp-foreground hover:bg-whatsapp/90" aria-label="Share to WhatsApp" onClick={() => onShare("whatsapp")}><Share2 /> <span className="truncate">WhatsApp</span></Button>
-      <Button variant="ink" size="sm" className="min-w-0 rounded-full px-2" onClick={onCreateImage}><ImagePlus /> <span className="truncate">Image</span></Button>
-    </div>
-    <div className="mt-1.5 flex justify-end gap-1.5">
-      <Button variant="glassIcon" size="dock" aria-label="Share on Instagram" title="Instagram" onClick={() => onShare("instagram")}><Instagram /></Button>
-      <Button variant="glassIcon" size="dock" aria-label={favorite ? "Remove from favorites" : "Save to favorites"} title="Favorite" onClick={onFavorite}><Heart className={cn(favorite && "fill-primary text-primary")} /></Button>
-      <Button variant="glassIcon" size="dock" aria-label={speaking ? "Stop listening" : "Listen to quote"} title="Listen" onClick={onListen}>{speaking ? <Pause /> : <Play />}</Button>
-    </div>
+function RoastCard({ post, saved, onSave, onCopy, onShare }: { post: RoastPost; saved: boolean; onSave: () => void; onCopy: () => void; onShare: () => void }) {
+  return <article className="rise overflow-hidden rounded-lg border border-border bg-card shadow-glass">
+    <div className={cn("flex min-h-64 flex-col justify-between p-6 text-story-foreground", post.gradient)}><div className="flex items-center justify-between text-[10px] font-extrabold uppercase"><span className="rounded-full bg-story-soft px-2.5 py-1">{post.heat}</span><span>{post.shares} shares</span></div><div><p className="font-hindi text-2xl font-semibold leading-snug sm:text-3xl">“{post.text}”</p><p className="mt-3 text-sm opacity-80">{post.translation}</p></div><span className="mt-6 text-[10px] font-bold uppercase opacity-70">#{post.category}</span></div>
+    <div className="grid grid-cols-[1fr_1fr_auto] gap-2 p-3"><Button variant="outline" onClick={onCopy}><Copy /> Copy</Button><Button variant="ink" onClick={onShare}><Share2 /> Share</Button><Button variant="ghost" size="icon" aria-label={saved ? "Remove saved roast" : "Save roast"} onClick={onSave}><Heart className={cn(saved && "fill-primary text-primary")} /></Button></div>
   </article>;
-}
-
-function Creator({ text, setText, font, setFont, background, setBackground, onDownload, onReset }: { onReset: () => void; text: string; setText: (value: string) => void; font: string; setFont: (value: string) => void; background: number; setBackground: (value: number) => void; onDownload: () => void }) {
-  return <section className="rise mx-auto max-w-2xl">
-    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Your words, your style</p><div className="mt-1 flex items-center justify-between gap-3"><h1 className="font-display text-3xl font-medium">Quote Creator</h1><Button size="sm" variant="outline" className="rounded-full" onClick={onReset}><RotateCcw /> Reset</Button></div>
-    <div className={cn("mt-5 flex aspect-[9/12] max-h-[480px] items-center justify-center rounded-2xl p-8 text-center text-story-foreground shadow-elevated", getCreatorBackground(background)?.className)}><p className={cn("max-w-md text-[clamp(1.5rem,7vw,2.5rem)] font-semibold leading-tight", font === "Tiro Devanagari Hindi" ? "font-hindi" : font === "Manrope" ? "font-body" : "font-display")}>“{text || "Your quote will appear here."}”</p></div>
-    <div className="mt-5 space-y-5 rounded-2xl border border-glass-border bg-glass p-4 shadow-glass backdrop-blur-xl">
-      <label className="block"><span className="text-xs font-semibold text-muted-foreground">Your caption</span><textarea value={text} maxLength={180} onChange={(event) => setText(event.target.value)} rows={3} className="mt-2 w-full resize-none rounded-xl border border-input bg-background/70 p-3 text-sm outline-none ring-primary transition focus:ring-2" placeholder="Write something unforgettable…" /><span className="mt-1 block text-right text-[10px] text-muted-foreground">{text.length}/180</span></label>
-      <div><span className="text-xs font-semibold text-muted-foreground">Font</span><div className="mt-2 grid grid-cols-3 gap-2">{["Fraunces", "Manrope", "Tiro Devanagari Hindi"].map((item) => <Button key={item} variant={font === item ? "ink" : "outline"} size="sm" className={cn("min-w-0 px-2", item === "Tiro Devanagari Hindi" && "font-hindi")} onClick={() => setFont(item)}>{item === "Tiro Devanagari Hindi" ? "हिंदी" : item}</Button>)}</div></div>
-      <div><span className="text-xs font-semibold text-muted-foreground">Background</span><div className="mt-2 flex gap-3">{creatorBackgrounds.map((item, index) => <button key={item.name} aria-label={`${item.name} background`} title={item.name} onClick={() => setBackground(index)} className={cn("size-9 rounded-full border-2 ring-offset-2 ring-offset-background transition", item.className, background === index ? "border-foreground ring-2 ring-primary" : "border-background")} />)}</div></div>
-      <Button variant="ink" size="lg" className="w-full rounded-xl" disabled={!text.trim()} onClick={onDownload}><Download /> Download Story Image</Button>
-    </div>
-  </section>;
-}
-
-function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
-  return <Button variant="ghost" className={cn("h-12 flex-col gap-0.5 rounded-xl text-[10px]", active ? "bg-foreground text-background hover:bg-foreground hover:text-background" : "text-muted-foreground")} onClick={onClick}>{icon}{label}</Button>;
 }

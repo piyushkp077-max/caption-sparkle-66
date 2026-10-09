@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Product architecture
+
+- Keep the product visual-first with `/` as the roast feed and `/viral-vault` as the downloadable clip library; this prevents audio features from re-entering the app.
