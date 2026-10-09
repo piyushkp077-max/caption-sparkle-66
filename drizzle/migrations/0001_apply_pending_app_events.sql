@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.app_events IS 'Visitor and AI usage events for admin stats';
