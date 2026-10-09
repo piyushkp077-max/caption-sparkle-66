@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ViralVaultRouteImport } from './routes/viral-vault'
 import { Route as ApiCaptionRouteImport } from './routes/api/caption'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ViralVaultRoute = ViralVaultRouteImport.update({
+  id: '/viral-vault',
+  path: '/viral-vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCaptionRoute = ApiCaptionRouteImport.update({
   id: '/api/caption',
   path: '/api/caption',
@@ -32,30 +38,34 @@ const ApiCaptionRoute = ApiCaptionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/caption'
+  fullPaths: '/' | '/admin' | '/viral-vault' | '/api/caption'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/caption'
-  id: '__root__' | '/' | '/admin' | '/api/caption'
+  to: '/' | '/admin' | '/viral-vault' | '/api/caption'
+  id: '__root__' | '/' | '/admin' | '/viral-vault' | '/api/caption'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ViralVaultRoute: typeof ViralVaultRoute
   ApiCaptionRoute: typeof ApiCaptionRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/viral-vault': {
+      id: '/viral-vault'
+      path: '/viral-vault'
+      fullPath: '/viral-vault'
+      preLoaderRoute: typeof ViralVaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/caption': {
       id: '/api/caption'
       path: '/api/caption'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ViralVaultRoute: ViralVaultRoute,
   ApiCaptionRoute: ApiCaptionRoute,
 }
 export const routeTree = rootRouteImport
