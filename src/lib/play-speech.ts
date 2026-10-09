@@ -9,7 +9,7 @@ export async function playSpeech(text: string, character: string, signal?: Abort
   signal?.addEventListener("abort", stopAll, { once: true });
   try {
     if (context.state === "suspended") await context.resume();
-    const res = await fetch("/api/speech", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, character }), signal });
+    const res = await fetch("/api/speech", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, character }), signal: signal ?? null });
     if (!res.ok || !res.body) {
       const body = await res.json().catch(() => null) as { error?: string } | null;
       throw new Error(body?.error ?? "Couldn't play the voice.");
