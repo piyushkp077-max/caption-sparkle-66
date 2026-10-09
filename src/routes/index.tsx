@@ -25,7 +25,8 @@ import {
 } from "lucide-react";
 import { downloadCanvas, renderStoryCanvas } from "@/lib/story-canvas";
 import { useEffect, useMemo, useRef, useState } from "react";
-import kpLogoAsset from "@/assets/kp-logo.png.asset.json";
+import kpLogoUrl from "@/assets/kp-logo.png";
+const kpLogoAsset = { url: kpLogoUrl };
 const kpLogo = kpLogoAsset.url;
 import { Button } from "@/components/ui/button";
 import { quotesByCategory } from "@/lib/quotes-data";
