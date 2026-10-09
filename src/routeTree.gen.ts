@@ -11,9 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as PrankStudioRouteImport } from './routes/prank-studio'
+import { Route as ViralVaultRouteImport } from './routes/viral-vault'
 import { Route as ApiCaptionRouteImport } from './routes/api/caption'
-import { Route as ApiSpeechRouteImport } from './routes/api/speech'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,9 +24,9 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrankStudioRoute = PrankStudioRouteImport.update({
-  id: '/prank-studio',
-  path: '/prank-studio',
+const ViralVaultRoute = ViralVaultRouteImport.update({
+  id: '/viral-vault',
+  path: '/viral-vault',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCaptionRoute = ApiCaptionRouteImport.update({
@@ -35,54 +34,39 @@ const ApiCaptionRoute = ApiCaptionRouteImport.update({
   path: '/api/caption',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSpeechRoute = ApiSpeechRouteImport.update({
-  id: '/api/speech',
-  path: '/api/speech',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/prank-studio': typeof PrankStudioRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
-  '/api/speech': typeof ApiSpeechRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/prank-studio': typeof PrankStudioRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
-  '/api/speech': typeof ApiSpeechRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/prank-studio': typeof PrankStudioRoute
+  '/viral-vault': typeof ViralVaultRoute
   '/api/caption': typeof ApiCaptionRoute
-  '/api/speech': typeof ApiSpeechRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/prank-studio' | '/api/caption' | '/api/speech'
+  fullPaths: '/' | '/admin' | '/viral-vault' | '/api/caption'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/prank-studio' | '/api/caption' | '/api/speech'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/prank-studio'
-    | '/api/caption'
-    | '/api/speech'
+  to: '/' | '/admin' | '/viral-vault' | '/api/caption'
+  id: '__root__' | '/' | '/admin' | '/viral-vault' | '/api/caption'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  PrankStudioRoute: typeof PrankStudioRoute
+  ViralVaultRoute: typeof ViralVaultRoute
   ApiCaptionRoute: typeof ApiCaptionRoute
-  ApiSpeechRoute: typeof ApiSpeechRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -101,11 +85,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prank-studio': {
-      id: '/prank-studio'
-      path: '/prank-studio'
-      fullPath: '/prank-studio'
-      preLoaderRoute: typeof PrankStudioRouteImport
+    '/viral-vault': {
+      id: '/viral-vault'
+      path: '/viral-vault'
+      fullPath: '/viral-vault'
+      preLoaderRoute: typeof ViralVaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/caption': {
@@ -115,22 +99,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCaptionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/speech': {
-      id: '/api/speech'
-      path: '/api/speech'
-      fullPath: '/api/speech'
-      preLoaderRoute: typeof ApiSpeechRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  PrankStudioRoute: PrankStudioRoute,
+  ViralVaultRoute: ViralVaultRoute,
   ApiCaptionRoute: ApiCaptionRoute,
-  ApiSpeechRoute: ApiSpeechRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import logoUrl from "@/assets/kp-logo.png";
-const logo = { url: logoUrl };
+import { Flame } from "lucide-react";
 
 export function SplashScreen() {
   const [phase, setPhase] = useState<"show" | "fade" | "done">("show");
@@ -19,11 +18,11 @@ export function SplashScreen() {
   return (
     <div
       className={`fixed inset-0 z-[1000000] flex flex-col gap-6 items-center justify-center bg-background text-foreground transition-opacity duration-500 select-none ${phase === "fade" ? "opacity-0" : "opacity-100"}`}
-      aria-label="Caption Generate AI — Created by Piyush KP"
+      aria-label="Desi Roast Factory — Created by Piyush KP"
       role="img"
     >
-      <img src={logo.url} alt="KP logo" className="size-28 object-contain" />
-      <span className="font-body text-2xl font-bold">Caption Generate AI</span>
+      <span className="grid size-24 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-elevated"><Flame className="size-12 fill-current" /></span>
+      <span className="font-body text-2xl font-bold">Desi Roast Factory</span>
       <span className="text-sm text-muted-foreground">Created by Piyush KP</span>
     </div>
   );
