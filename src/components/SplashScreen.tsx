@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import logo from "@/assets/kp-logo.png.asset.json";
+import logoUrl from "@/assets/kp-logo.png";
+const logo = { url: logoUrl };
 
 export function SplashScreen() {
   const [phase, setPhase] = useState<"show" | "fade" | "done">("show");
