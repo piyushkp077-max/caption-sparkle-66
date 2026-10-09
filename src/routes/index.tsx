@@ -235,6 +235,7 @@ function QuotelyApp() {
               <span className="min-w-0 leading-none"><span className="block font-body text-sm font-bold leading-tight">Caption Generate AI</span><span className="mt-1 block truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Captions, Quotes & Hashtags</span></span>
             </button>
             <div className="flex shrink-0 items-center gap-1.5">
+              <Button asChild variant="glass" size="sm" className="rounded-full px-3 text-xs"><a href="/prank-studio" aria-label="Open Prank Studio">🔥 Prank</a></Button>
               <Button variant="glassIcon" size="icon" className="rounded-full" aria-label="Saved favorites" onClick={() => setActiveTab("saved")}><Heart className={cn(favorites.length > 0 && "fill-primary text-primary")} /></Button>
               <Button variant="ink" size="icon" className="rounded-full" aria-label="Toggle color theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon /> : <Sun />}</Button>
             </div>
