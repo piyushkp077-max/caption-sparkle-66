@@ -15,16 +15,26 @@ describe("caption generation settings", () => {
     expect(captionInput.safeParse({ kind: "video", images: [], language: "शुद्ध हिंदी" }).success).toBe(false);
   });
   test("legacy categories stay available alongside Roast", () => {
-    expect(globalCategories).toHaveLength(5);
-    expect(globalCategoryFor("Attitude")).toBe("Luxury & Success Attitude");
-    expect(globalCategoryFor("Instagram Reels")).toBe("Short & Aesthetic Captions");
-    expect(globalCategoryFor("Life")).toBe("Still Quotes");
+    expect(globalCategories[0]).toBe("Roast");
+    expect(globalCategoryFor("Attitude")).toBe("Attitude");
+    expect(globalCategoryFor("Instagram Reels")).toBe("Instagram Reels");
+    expect(globalCategoryFor("Life")).toBe("Life");
     expect(captionInput.safeParse({ kind: "prompt", prompt: "Training", language: "शुद्ध हिंदी", category: "Gym & Fitness" }).success).toBe(true);
-    expect(captionInput.safeParse({ kind: "prompt", prompt: "Training", language: "शुद्ध हिंदी", category: "Attitude" }).success).toBe(false);
+    expect(captionInput.safeParse({ kind: "prompt", prompt: "Training", language: "शुद्ध हिंदी", category: "Attitude" }).success).toBe(true);
   });
-  test("only the two requested Hindi tones are accepted", () => {
-    expect(captionLanguages).toEqual(["शुद्ध हिंदी", "ठेठी / देसी स्लैंग"]);
-    for (const language of ["English", "Hindi", "Hinglish", "Arabic"]) expect(captionInput.safeParse({ kind: "prompt", prompt: "Sunset", language }).success).toBe(false);
+  test.each(["Hinglish", "English", "العربية", "Français", "Español", "Deutsch", "Italiano", "शुद्ध हिंदी", "ठेठी / देसी स्लैंग"])("accepts front-facing language %s for text and media", (language) => {
+    expect(captionLanguages).toContain(language);
+    for (const kind of ["prompt", "photo", "video"]) expect(captionInput.safeParse({ kind, prompt: "Sunset", images: ["data:image/jpeg;base64,abc"], language }).success).toBe(true);
+  });
+  test.each(["Attitude", "Friendship", "Romantic", "Love", "Lifestyle", "Party", "Instagram Reels", "Motivation", "Sad", "Life", "Friends", "Single/Breakup", "Daily Quotes"])("restores category %s", (category) => {
+    expect(globalCategories).toContain(category);
+    expect(captionInput.safeParse({ kind: "prompt", prompt: "A moment", language: "English", category }).success).toBe(true);
+  });
+  test("international tones respect the requested language in Roast Mode", () => {
+    expect(captionToneInstruction("English", "Roast")).toContain("fluent English");
+    expect(captionToneInstruction("Hinglish", "Roast")).toContain("Latin script");
+    expect(captionToneInstruction("العربية", "Roast")).toContain("Arabic script");
+    expect(captionToneInstruction("Français", "Roast")).toContain("French");
   });
   test.each(["prompt", "photo", "video"])("%s results cannot exceed three captions", (kind) => {
     const input = { kind, prompt: "Sunset", images: ["data:image/jpeg;base64,abc"], language: "शुद्ध हिंदी" };
