@@ -1,6 +1,6 @@
 # Caption engine update
-- [ ] Restore front-facing international languages and comprehensive categories with pinned Roast.
-- [ ] Keep independent Roast Mode beside language controls and verify text/media generation stays capped at three.
+- [x] Restore front-facing international languages and comprehensive categories with pinned Roast.
+- [x] Keep independent Roast Mode beside language controls and verify text/media generation stays capped at three.
 - [x] Limit text and media outputs to two or three captions.
 - [x] Add only the two requested Hindi tones and Roast category.
 - [x] Compact generation controls and verify copy/share and live generation.
