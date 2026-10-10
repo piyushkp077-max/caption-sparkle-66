@@ -100,9 +100,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Caption Generate AI" },
-      { name: "description", content: "Generate multilingual AI captions from one prompt, photos or videos. Discover aesthetic, success, fitness and still quotes." },
+      { name: "description", content: "Create up to three Hindi captions or regional Desi roasts from text, photos and videos." },
       { property: "og:title", content: "Caption Generate AI" },
-      { property: "og:description", content: "Create native-language captions and hashtags from text, photos and videos with Caption Generate AI." },
+      { property: "og:description", content: "Create clean Hindi captions or punchy regional Desi roasts with Caption Generate AI." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -113,7 +113,7 @@ export const Route = createFileRoute("/")({
 function QuotelyApp() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [category, setCategory] = useState<string>(globalCategories[0]);
-  const [language, setLanguage] = useState<CaptionLanguage>("English");
+  const [language, setLanguage] = useState<CaptionLanguage>("शुद्ध हिंदी");
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
   const [tab, setTab] = useState<"home" | "saved" | "create" | "hashtags" | "fonts" | "ai">("home");
@@ -217,13 +217,13 @@ function QuotelyApp() {
               <Button variant="ink" size="icon" className="rounded-full" aria-label="Toggle color theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon /> : <Sun />}</Button>
             </div>
           </div>
-          <label className="mt-3 flex items-center gap-2 rounded-full border border-glass-border bg-glass px-3 py-2.5 shadow-glass backdrop-blur-xl">
+          {(tab === "saved" || tab === "hashtags") && <label className="mt-3 flex items-center gap-2 rounded-full border border-glass-border bg-glass px-3 py-2.5 shadow-glass backdrop-blur-xl">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword…" aria-label="Search quotes" />
-          </label>
-          <LanguageSelector value={language} onChange={setLanguage} />
-          {tab === "home" && <div className="mt-3 grid grid-cols-2 gap-2">
-            {categories.map((item) => <Button key={item} variant={category === item ? "ink" : "glass"} size="sm" className="h-auto min-h-11 whitespace-normal px-2 py-2 text-xs leading-snug" onClick={() => setCategory(item)}>{item}</Button>)}
+          </label>}
+          {(tab === "home" || tab === "ai") && <LanguageSelector value={language} onChange={setLanguage} />}
+          {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {categories.map((item) => <Button key={item} aria-pressed={category === item} variant={category === item ? "ink" : "glass"} size="sm" className="h-9 shrink-0 rounded-full px-3 text-xs" onClick={() => setCategory(item)}>{item}</Button>)}
           </div>}
         </div>
       </header>
@@ -241,7 +241,9 @@ function QuotelyApp() {
           <>
             {tab === "home" && <PhotoCaption mode="prompt" language={language} category={category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
 
-            <section className={cn(tab === "home" ? "mt-6" : "mt-1")}>
+            <details open={tab === "saved"} className={cn(tab === "home" ? "mt-4" : "mt-1")}>
+              <summary className="cursor-pointer py-2 text-sm font-semibold text-muted-foreground">{tab === "saved" ? "Saved Favorites" : "Trending captions"}</summary>
+              {tab === "home" && <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search quotes" placeholder="Search captions…" className="my-2 w-full rounded-lg border border-input bg-background p-2 text-sm" />}
               <div className="flex items-end justify-between gap-4">
                 <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tab === "saved" ? "Your collection" : "Fresh picks"}</p><h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium">{tab === "saved" ? <Heart className="size-5 fill-primary text-primary" /> : <Flame className="size-5 fill-primary text-primary" />}{tab === "saved" ? "Saved Favorites" : "Trending Now"}</h1></div>
                 {tab === "home" && <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">Live <span className="size-1.5 rounded-full bg-primary" /></span>}
@@ -249,7 +251,7 @@ function QuotelyApp() {
               {visibleQuotes.length ? <div className="mt-4 grid gap-6 md:grid-cols-2">
                 {visibleQuotes.map((quote, index) => <QuoteCard key={quote.id} quote={quote} favorite={favorites.includes(quote.id)} delay={Math.min(index, 3)} onCopy={() => copyText(quote.text)} onFavorite={() => toggleFavorite(quote.id)} onCreateImage={() => setMakerQuote(quote)} onShare={(channel) => share(quote, channel)} />)}
               </div> : <div className="mt-12 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-xl">No captions found</h2><p className="mt-1 text-sm text-muted-foreground">Try another keyword or category.</p></div>}
-            </section>
+            </details>
           </>
         )}
       </main>

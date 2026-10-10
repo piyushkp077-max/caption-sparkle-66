@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type AiCaption } from "@/lib/video-captions";
 import { getVisitorId } from "@/lib/visitor";
-import { globalCategories, type CaptionLanguage } from "@/lib/caption-settings";
+import { globalCategories, limitCaptions, MAX_CAPTIONS, MIN_CAPTIONS, type CaptionLanguage } from "@/lib/caption-settings";
 
 type Media = { kind: "photo"; src: string } | { kind: "video"; src: string; frames: Promise<string[]> } | null;
 
@@ -88,10 +88,10 @@ export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "m
           const o = JSON.parse(line);
           if (o.error) { setNote(o.error); return; }
           if (o.mood) setMood(o.mood);
-          else if (o.text) { got++; setCaptions((c) => [...c, o]); }
+          else if (o.text && got < MAX_CAPTIONS) { got++; setCaptions((c) => limitCaptions([...c, o])); }
         }
       }
-      if (!got) fallback();
+      if (got < MIN_CAPTIONS) { setCaptions([]); fallback(); }
     } catch (e) {
       if (!ctrl.signal.aborted) fallback();
     } finally {
@@ -112,40 +112,34 @@ export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "m
   return <section className="rise mx-auto max-w-2xl">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-xs font-semibold uppercase text-primary">{mode === "prompt" ? "Your next caption" : "Photo & Video to Caption"}</p>
-        <h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium"><Sparkles className="size-6 text-primary" />{mode === "prompt" ? "Generate Captions" : "Media AI Captions"}</h1>
+        <h1 className="flex items-center gap-2 font-display text-xl font-medium"><Sparkles className="size-5 text-primary" />{category === "Roast" ? "Generate Roasts" : mode === "prompt" ? "Generate Captions" : "Media AI Captions"}</h1>
       </div>
       {(media || prompt || captions.length > 0 || loading) && <Button size="sm" variant="outline" className="rounded-full" onClick={reset}><RotateCcw /> Reset</Button>}
     </div>
-    {mode === "media" && <p className="mt-1 text-sm text-muted-foreground">Photos & videos · {language}</p>}
-    {mode === "prompt" && <label className="mt-4 block"><span className="text-xs font-semibold text-muted-foreground">Your prompt</span><textarea aria-label="Caption prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} rows={3} placeholder="A quiet sunset by the sea, feeling grateful…" className="mt-2 w-full resize-y rounded-lg border border-input bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>}
+    {mode === "prompt" && <label className="mt-2 block"><textarea aria-label="Caption prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} rows={2} placeholder={category === "Roast" ? "हर बात में खुद को हीरो समझने वाला दोस्त…" : "समंदर किनारे ढलता सूरज…"} className="w-full resize-none rounded-lg border border-input bg-background p-2 font-hindi text-sm outline-none focus:ring-2 focus:ring-ring" /></label>}
 
     <input ref={inputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
-    {mode === "media" && <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} className="mt-5 flex h-auto aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-glass-border bg-glass p-0 text-center shadow-glass backdrop-blur-xl">
-      {media?.kind === "photo" ? <img src={media.src} alt="Your uploaded photo" className="size-full object-cover" />
-        : media?.kind === "video" ? <video src={media.src} className="size-full object-cover" muted autoPlay loop playsInline />
+    {mode === "media" && <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} className="mt-2 flex h-28 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-glass-border bg-glass p-0 text-center">
+      {media?.kind === "photo" ? <img src={media.src} alt="Your uploaded photo" className="size-full object-contain" />
+        : media?.kind === "video" ? <video src={media.src} className="size-full object-contain" muted autoPlay loop playsInline />
         : <><Camera className="size-9 text-primary" /><span className="mt-2 text-sm font-semibold">Tap to upload a photo or video</span><span className="text-xs text-muted-foreground">JPG, PNG, HEIC, MP4, MOV — any length</span></>}
     </Button>}
 
-    <Button variant="ink" className="mt-3 h-12 w-full rounded-xl" disabled={(mode === "prompt" ? !prompt.trim() : !media) || loading} onClick={generate}>
+    <Button variant="ink" className="mt-2 h-10 w-full rounded-lg" disabled={(mode === "prompt" ? !prompt.trim() : !media) || loading} onClick={generate}>
       {loading ? <><Loader2 className="animate-spin" /> {captions.length ? `Writing captions… ${captions.length}` : mode === "prompt" ? "Writing captions…" : media?.kind === "video" ? "Analysing your video…" : "Analysing your photo…"}</> : captions.length ? <><RefreshCw /> Generate Again</> : <><Sparkles /> Generate Captions</>}
     </Button>
-    {media && <Button variant="outline" className="mt-2 h-12 w-full rounded-xl" onClick={reset}><Upload /> Upload New Media</Button>}
-    {mood && <p className="mt-3 text-center text-sm">Detected mood: <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">{mood}</span></p>}
+    {mood && <p className="mt-2 text-xs text-muted-foreground">{mood}</p>}
     {note && <p className="mt-3 rounded-xl bg-muted p-3 text-sm text-muted-foreground">{note}</p>}
 
-    <div className="mt-5 space-y-4">
-      {captions.map((c, i) => <article key={c.text + i} className="rise rounded-2xl border border-glass-border bg-glass p-4 shadow-glass backdrop-blur-xl">
-        <p dir="auto" className={cn("break-words text-lg font-medium leading-snug", /[\u0900-\u097F]/.test(c.text) ? "font-hindi" : "font-display")}>“{c.text}”</p>
-        {c.translation && <p className="mt-1 text-sm text-muted-foreground">{c.translation}</p>}
-        <p className="mt-3 text-xs leading-relaxed text-primary">{c.hashtags.join(" ")}</p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          <Button size="sm" variant="glass" className="rounded-full" onClick={() => onCopy(c.text, "Caption copied")}><Copy /> Copy</Button>
-          <Button size="sm" variant="glass" className="rounded-full" onClick={() => onCopy(c.hashtags.join(" "), "Hashtags copied")}><Hash /> Tags</Button>
-          <Button size="sm" variant="ink" className="rounded-full" onClick={() => onWhatsApp(`${c.text}\n\n${c.hashtags.join(" ")}`)}><Share2 /> WhatsApp</Button>
+    <div className="mt-3 space-y-2" aria-live="polite">
+      {captions.map((c, i) => <article key={c.text + i} aria-label={`Generated caption ${i + 1}`} className="rise rounded-lg border border-glass-border bg-glass p-3">
+        <p dir="auto" className={cn("break-words text-base font-medium leading-snug", /[\u0900-\u097F]/.test(c.text) ? "font-hindi" : "font-display")}>“{c.text}”</p>
+        <div className="mt-2 flex items-center gap-2">
+          <Button size="sm" variant="glass" className="h-8 rounded-lg" onClick={() => onCopy(c.text, "Caption copied")}><Copy /> Copy</Button>
+          <Button size="icon" variant="glass" className="size-8 rounded-lg" aria-label="Copy hashtags" title="Copy hashtags" onClick={() => onCopy(c.hashtags.join(" "), "Hashtags copied")}><Hash /></Button>
+          <Button size="sm" variant="ink" className="ml-auto h-8 rounded-lg" onClick={async () => { const text = `${c.text}\n\n${c.hashtags.join(" ")}`; if (navigator.share) { try { await navigator.share({ text }); } catch { /* user cancelled */ } } else onWhatsApp(text); }}><Share2 /> Share</Button>
         </div>
       </article>)}
     </div>
-    {captions.length > 0 && !loading && <Button variant="ink" className="mt-5 h-12 w-full rounded-xl" onClick={reset}>{mode === "prompt" ? <RotateCcw /> : <Upload />}{mode === "prompt" ? "New Prompt" : "Upload Another Photo/Video"}</Button>}
   </section>;
 }
