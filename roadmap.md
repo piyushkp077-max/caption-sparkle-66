@@ -1,7 +1,7 @@
 # Caption engine update
-- [ ] Limit text and media outputs to two or three captions.
-- [ ] Add only the two requested Hindi tones and Roast category.
-- [ ] Compact generation controls and verify copy/share and live generation.
+- [x] Limit text and media outputs to two or three captions.
+- [x] Add only the two requested Hindi tones and Roast category.
+- [x] Compact generation controls and verify copy/share and live generation.
 
 # Restore original application
 - [x] Restore the original pre-voice home screen, app name, icons, and layout.

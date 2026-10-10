@@ -1,4 +1,4 @@
-import { Camera, Copy, Hash, Loader2, RefreshCw, RotateCcw, Share2, Sparkles, Upload } from "lucide-react";
+import { Camera, Copy, Hash, Loader2, RefreshCw, RotateCcw, Share2, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
