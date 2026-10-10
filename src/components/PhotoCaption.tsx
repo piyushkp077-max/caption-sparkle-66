@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type AiCaption } from "@/lib/video-captions";
 import { getVisitorId } from "@/lib/visitor";
-import { globalCategories, limitCaptions, MAX_CAPTIONS, MIN_CAPTIONS, type CaptionLanguage } from "@/lib/caption-settings";
+import { captionOutput, globalCategories, limitCaptions, MAX_CAPTIONS, MIN_CAPTIONS, type CaptionLanguage } from "@/lib/caption-settings";
 
 type Media = { kind: "photo"; src: string } | { kind: "video"; src: string; frames: Promise<string[]> } | null;
 
@@ -43,7 +43,8 @@ async function videoFrames(url: string): Promise<string[]> {
   return frames;
 }
 
-export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "media" }: { onCopy: (text: string, message: string) => void; onWhatsApp: (text: string) => void; language: CaptionLanguage; category: string; mode?: "media" | "prompt" }) {
+export function PhotoCaption({ onCopy, onWhatsApp, language, category, roastMode = false, mode = "media" }: { onCopy: (text: string, message: string) => void; onWhatsApp: (text: string) => void; language: CaptionLanguage; category: string; roastMode?: boolean; mode?: "media" | "prompt" }) {
+  const roast = roastMode || category === "Roast";
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const [media, setMedia] = useState<Media>(null);
@@ -73,7 +74,7 @@ export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "m
     try {
       const images = mode === "prompt" ? [] : media?.kind === "video" ? await media.frames : media ? [media.src] : [];
       if (ctrl.signal.aborted) return;
-      const res = await fetch("/api/caption", { method: "POST", signal: ctrl.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ images, kind: mode === "prompt" ? "prompt" : media?.kind, prompt, category: globalCategories.find((item) => item === category), language, visitorId: getVisitorId() }) });
+      const res = await fetch("/api/caption", { method: "POST", signal: ctrl.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ images, kind: mode === "prompt" ? "prompt" : media?.kind, prompt, category: globalCategories.find((item) => item === category), roastMode, language, visitorId: getVisitorId() }) });
       if (!res.ok || !res.body) { const error = await res.json().catch(() => null); setNote(error?.error || "Couldn't generate captions. Please try again."); return; }
       const reader = res.body.getReader();
       const dec = new TextDecoder();
@@ -86,14 +87,14 @@ export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "m
         for (const line of lines) {
           if (!line.trim()) continue;
           const o = JSON.parse(line);
-          if (o.error) { setNote(o.error); return; }
+          if (o.error) { if (got < MIN_CAPTIONS) setCaptions([]); setNote(o.error); return; }
           if (o.mood) setMood(o.mood);
-          else if (o.text && got < MAX_CAPTIONS) { got++; setCaptions((c) => limitCaptions([...c, o])); }
+          else if (got < MAX_CAPTIONS) { const result = captionOutput.safeParse(o); if (result.success) { got++; setCaptions((c) => limitCaptions([...c, result.data])); } }
         }
       }
       if (got < MIN_CAPTIONS) { setCaptions([]); fallback(); }
     } catch (e) {
-      if (!ctrl.signal.aborted) fallback();
+      if (!ctrl.signal.aborted) { setCaptions([]); fallback(); }
     } finally {
       if (abortRef.current === ctrl) setLoading(false);
     }
@@ -112,11 +113,11 @@ export function PhotoCaption({ onCopy, onWhatsApp, language, category, mode = "m
   return <section className="rise mx-auto max-w-2xl">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <h1 className="flex items-center gap-2 font-display text-xl font-medium"><Sparkles className="size-5 text-primary" />{category === "Roast" ? "Generate Roasts" : mode === "prompt" ? "Generate Captions" : "Media AI Captions"}</h1>
+        <h1 className="flex items-center gap-2 font-display text-xl font-medium"><Sparkles className="size-5 text-primary" />{roast ? "Generate Roasts" : mode === "prompt" ? "Generate Captions" : "Media AI Captions"}</h1>
       </div>
       {(media || prompt || captions.length > 0 || loading) && <Button size="sm" variant="outline" className="rounded-full" onClick={reset}><RotateCcw /> Reset</Button>}
     </div>
-    {mode === "prompt" && <label className="mt-2 block"><textarea aria-label="Caption prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} rows={2} placeholder={category === "Roast" ? "हर बात में खुद को हीरो समझने वाला दोस्त…" : "समंदर किनारे ढलता सूरज…"} className="w-full resize-none rounded-lg border border-input bg-background p-2 font-hindi text-sm outline-none focus:ring-2 focus:ring-ring" /></label>}
+    {mode === "prompt" && <label className="mt-2 block"><textarea aria-label="Caption prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} rows={2} placeholder={roast ? "हर बात में खुद को हीरो समझने वाला दोस्त…" : "समंदर किनारे ढलता सूरज…"} className="w-full resize-none rounded-lg border border-input bg-background p-2 font-hindi text-sm outline-none focus:ring-2 focus:ring-ring" /></label>}
 
     <input ref={inputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
     {mode === "media" && <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} className="mt-2 flex h-28 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-glass-border bg-glass p-0 text-center">
