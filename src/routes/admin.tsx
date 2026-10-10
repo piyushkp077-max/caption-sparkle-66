@@ -10,11 +10,11 @@ export const Route = createFileRoute("/admin")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Private" },
-      { name: "description", content: "Private area." },
+      { title: "Admin Access — Caption Generate AI" },
+      { name: "description", content: "Private visitor statistics for Caption Generate AI." },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Private" },
-      { property: "og:description", content: "Private area." },
+      { property: "og:title", content: "Admin Access — Caption Generate AI" },
+      { property: "og:description", content: "Private visitor statistics for Caption Generate AI." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
