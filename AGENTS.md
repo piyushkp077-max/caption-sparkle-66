@@ -11,4 +11,4 @@
 
 ## Product architecture
 
-- Keep the product visual-first with `/` as the roast feed and `/viral-vault` as the downloadable clip library; this prevents audio features from re-entering the app.
+- Keep the original caption application's home and six tab views at `/`, reusing its caption, hashtag, font, and image-creation modules; this preserves the restored pre-replacement architecture.
