@@ -14,3 +14,4 @@
 - Keep the original caption application's home and six tab views at `/`, reusing its caption, hashtag, font, and image-creation modules; this preserves the restored pre-replacement architecture.
 - Centralize caption count bounds, tone rules and output validation in caption-settings and enforce them in both the stream handler and client; this prevents text and media generation from diverging.
 - Preserve original quote category identities and use one shared multilingual category catalog for text and media controls; this keeps restored filters and generation validation aligned.
+- Pre-optimize the language-bar switch alongside React and React DOM in Vite; this prevents late dependency discovery from mixing React module generations in the preview.

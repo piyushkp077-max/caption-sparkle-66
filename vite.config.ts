@@ -7,6 +7,13 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  vite: {
+    optimizeDeps: {
+      // Discover the language-bar switch before serving the first page so lazy
+      // optimization cannot mix old React DOM and new React module versions.
+      include: ["react", "react-dom", "react-dom/client", "@radix-ui/react-switch"],
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
