@@ -230,7 +230,7 @@ function QuotelyApp() {
             <LanguageSelector value={language} onChange={setLanguage} />
           </>}
           {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10 bg-background")} onClick={() => { setCategory(item); setRoastMode(item === "Roast"); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
+            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { setCategory(item); setRoastMode(item === "Roast"); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
           </div>}
         </div>
       </header>
