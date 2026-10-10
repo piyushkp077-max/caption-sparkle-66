@@ -1,4 +1,6 @@
 # Caption engine update
+- [ ] Remove Home generator boxes and retain visible languages, branding and pinned Roast categories.
+- [ ] Keep Roast Mode independent, strengthen regional roast instructions and verify two-to-three results.
 - [x] Restore front-facing international languages and comprehensive categories with pinned Roast.
 - [x] Keep independent Roast Mode beside language controls and verify text/media generation stays capped at three.
 - [x] Limit text and media outputs to two or three captions.

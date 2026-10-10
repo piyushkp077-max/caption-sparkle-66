@@ -11,6 +11,7 @@ export const captionInput = z.object({
   kind: z.enum(["photo", "video", "prompt"]),
   language: z.enum(captionLanguages),
   category: z.enum(globalCategories).optional(),
+  roastMode: z.boolean().default(false),
   prompt: z.string().trim().max(2000).default(""),
   visitorId: z.string().max(64).optional(),
 }).refine((data) => data.kind === "prompt" ? data.prompt.length > 0 : data.images.length > 0, { message: "Add a prompt or media." });
@@ -19,7 +20,8 @@ export function globalCategoryFor(category: string): GlobalCategory {
   return globalCategories.find((item) => item === category) ?? "Still Quotes";
 }
 
-export function captionToneInstruction(language: CaptionLanguage, category?: GlobalCategory): string {
+export function captionToneInstruction(language: CaptionLanguage, category?: GlobalCategory, roastMode = false): string {
+  const roast = roastMode || category === "Roast";
   if (language === "शुद्ध हिंदी") return "Write in clean, formal Hindi in Devanagari. Use polished vocabulary, no slang or swear words. For Roast, use sharp wit without profanity.";
   const international: Partial<Record<CaptionLanguage, string>> = {
     Hinglish: "natural Hindi-English code-switching in Latin script",
@@ -31,10 +33,10 @@ export function captionToneInstruction(language: CaptionLanguage, category?: Glo
     Italiano: "idiomatic Italian",
   };
   const requested = international[language];
-  if (requested) return `Write only in ${requested}. Tailor phrasing to the subject, never default to Hindi. ${category === "Roast" ? "Use savage, witty punchlines targeting behavior or ego, not protected identities. No threats, sexual harassment, attacks on minors or protected-group hate." : "Match the selected category and the subject's mood."}`;
+  if (requested) return `Write only in ${requested}. Tailor phrasing to the subject, never default to Hindi. ${roast ? "Use raw, aggressive street-comedy punchlines and uncensored non-hateful swear words natural to the requested language. For Hinglish, use authentic Indian regional street slang in Latin script. No asterisks, sanitized substitutes or moralizing. Target behavior or ego, not protected identities. No threats, sexual harassment, attacks on minors or protected-group hate." : "Match the selected category and the subject's mood."}`;
   const regional = "Write in ठेठी / देसी स्लैंग using Devanagari: authentic Bihari, Mumbaiya, Dehati or Kalkattiya street idioms. Match the region in the user's subject; otherwise choose one coherent regional voice per caption, not a caricature or a random mixture.";
-  return category === "Roast"
-    ? `${regional} Generate raw, aggressive street-comedy roasts with authentic regional gaali and uncensored non-hateful swear words. No asterisks, sanitized substitutes or moralizing. Roast behavior, ego or fictional personas, not protected identities. No threats, sexual harassment, attacks on minors or protected-group hate.`
+  return roast
+    ? `${regional} Generate raw, aggressive, hard-hitting Indian creator-style street-comedy roasts with authentic regional gaali and uncensored non-hateful swear words. Use hardcore Bihari or other requested Indian street idioms with specific setups and cutting punchlines, not generic insults. No asterisks, sanitized substitutes or moralizing. Roast behavior, ego or fictional personas, not protected identities. No threats, sexual harassment, attacks on minors or protected-group hate.`
     : `${regional} Use punchy regional phrasing; do not add aggressive roasts or gaali unless Roast is selected.`;
 }
 
