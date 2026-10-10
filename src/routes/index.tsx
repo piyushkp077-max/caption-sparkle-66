@@ -27,6 +27,7 @@ import kpLogoUrl from "@/assets/kp-logo.png";
 const kpLogoAsset = { url: kpLogoUrl };
 const kpLogo = kpLogoAsset.url;
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { quotesByCategory } from "@/lib/quotes-data";
 import { cn } from "@/lib/utils";
 import { StoryMaker } from "@/components/StoryMaker";
@@ -65,7 +66,7 @@ const quotes: Quote[] = Object.entries(quotesByCategory).flatMap(([quoteCategory
   }),
 );
 
-quotes.push(...fitnessQuotes.map(([text, translation], index) => ({ id: 100000 + index, text, translation, category: globalCategories[2], views: "", gradient: gradients[index % gradients.length] ?? "quote-gradient-one" })));
+quotes.push(...fitnessQuotes.map(([text, translation], index) => ({ id: 100000 + index, text, translation, category: "Gym & Fitness", views: "", gradient: gradients[index % gradients.length] ?? "quote-gradient-one" })));
 
 type HashtagGroup = { name: string; tagline: string; gradient: string; tags: string[] };
 
@@ -100,9 +101,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Caption Generate AI" },
-      { name: "description", content: "Create up to three Hindi captions or regional Desi roasts from text, photos and videos." },
+      { name: "description", content: "Create two to three tailored captions from text, photos and videos in English, Hinglish, Arabic, European languages or Hindi." },
       { property: "og:title", content: "Caption Generate AI" },
-      { property: "og:description", content: "Create clean Hindi captions or punchy regional Desi roasts with Caption Generate AI." },
+      { property: "og:description", content: "Explore rich caption categories and multilingual AI captions with a dedicated Roast Mode." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -112,7 +113,8 @@ export const Route = createFileRoute("/")({
 
 function QuotelyApp() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [category, setCategory] = useState<string>(globalCategories[0]);
+  const [category, setCategory] = useState<string>("Attitude");
+  const [roastMode, setRoastMode] = useState(false);
   const [language, setLanguage] = useState<CaptionLanguage>("शुद्ध हिंदी");
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
@@ -141,7 +143,7 @@ function QuotelyApp() {
   const visibleQuotes = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return quotes.filter((quote) => {
-      const categoryMatch = tab === "saved" || quote.category === category;
+      const categoryMatch = tab === "saved" || quote.category === category || (category === "Friendship" && quote.category === "Friends");
       const searchMatch = !normalized || `${quote.text} ${quote.translation} ${quote.category}`.toLowerCase().includes(normalized);
       const favoriteMatch = tab !== "saved" || favorites.includes(quote.id);
       return categoryMatch && searchMatch && favoriteMatch;
@@ -199,7 +201,6 @@ function QuotelyApp() {
 
   const setActiveTab = (next: "home" | "saved" | "create" | "hashtags" | "fonts" | "ai") => {
     setTab(next);
-    if (next === "home") setCategory(globalCategories[0]);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -221,16 +222,22 @@ function QuotelyApp() {
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword…" aria-label="Search quotes" />
           </label>}
-          {(tab === "home" || tab === "ai") && <LanguageSelector value={language} onChange={setLanguage} />}
+          {(tab === "home" || tab === "ai") && <>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Language</span>
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={(checked) => { setRoastMode(checked); if (!checked && category === "Roast") setCategory("Attitude"); }} /></label>
+            </div>
+            <LanguageSelector value={language} onChange={setLanguage} />
+          </>}
           {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={category === item} variant={category === item ? "ink" : "glass"} size="sm" className="h-9 shrink-0 rounded-full px-3 text-xs" onClick={() => setCategory(item)}>{item}</Button>)}
+            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10 bg-background")} onClick={() => { setCategory(item); setRoastMode(item === "Roast"); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
           </div>}
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 pb-28 pt-4">
         {tab === "ai" ? (
-          <PhotoCaption language={language} category={category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />
+          <PhotoCaption language={language} category={roastMode ? "Roast" : category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />
         ) : tab === "fonts" ? (
           <FontStudio onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} />
         ) : tab === "hashtags" ? (
@@ -239,7 +246,7 @@ function QuotelyApp() {
           <Creator text={creatorText} setText={setCreatorText} font={creatorFont} setFont={setCreatorFont} background={creatorBg} setBackground={setCreatorBg} onReset={() => { setCreatorText(""); setCreatorFont("Fraunces"); setCreatorBg(0); }} onDownload={() => downloadStory(creatorText, getCreatorBackground(creatorBg)?.colors ?? [], "my-caption-generate-ai.png", creatorFont)} />
         ) : (
           <>
-            {tab === "home" && <PhotoCaption mode="prompt" language={language} category={category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
+            {tab === "home" && <PhotoCaption mode="prompt" language={language} category={roastMode ? "Roast" : category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
 
             <details open={tab === "saved"} className={cn(tab === "home" ? "mt-4" : "mt-1")}>
               <summary className="cursor-pointer py-2 text-sm font-semibold text-muted-foreground">{tab === "saved" ? "Saved Favorites" : "Trending captions"}</summary>
