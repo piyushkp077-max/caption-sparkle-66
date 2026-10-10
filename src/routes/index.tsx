@@ -225,12 +225,12 @@ function QuotelyApp() {
           {(tab === "home" || tab === "ai") && <>
             <div className="mt-3 flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground">Language</span>
-              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={(checked) => { setRoastMode(checked); if (!checked && category === "Roast") setCategory("Attitude"); }} /></label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={setRoastMode} /></label>
             </div>
             <LanguageSelector value={language} onChange={setLanguage} />
           </>}
           {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { setCategory(item); setRoastMode(item === "Roast"); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
+            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { if (item === "Roast") setRoastMode((on) => !on); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
           </div>}
         </div>
       </header>
@@ -246,7 +246,6 @@ function QuotelyApp() {
           <Creator text={creatorText} setText={setCreatorText} font={creatorFont} setFont={setCreatorFont} background={creatorBg} setBackground={setCreatorBg} onReset={() => { setCreatorText(""); setCreatorFont("Fraunces"); setCreatorBg(0); }} onDownload={() => downloadStory(creatorText, getCreatorBackground(creatorBg)?.colors ?? [], "my-caption-generate-ai.png", creatorFont)} />
         ) : (
           <>
-            {tab === "home" && <PhotoCaption mode="prompt" language={language} category={roastMode ? "Roast" : category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
 
             <details open={tab === "saved"} className={cn(tab === "home" ? "mt-4" : "mt-1")}>
               <summary className="cursor-pointer py-2 text-sm font-semibold text-muted-foreground">{tab === "saved" ? "Saved Favorites" : "Trending captions"}</summary>
