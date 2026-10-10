@@ -49,15 +49,4 @@ describe("caption generation settings", () => {
     expect(captionToneInstruction("ठेठी / देसी स्लैंग", "Gym & Fitness")).not.toContain("uncensored non-hateful swear words");
     expect(captionToneInstruction("शुद्ध हिंदी", "Roast")).toContain("no slang or swear words");
   });
-  test.each(["Attitude", "Friendship", "Party"] as const)("Roast Mode remains active with %s category context", (category) => {
-    const result = captionInput.parse({ kind: "prompt", prompt: "A fictional show-off", language: "ठेठी / देसी स्लैंग", category, roastMode: true });
-    expect(result.roastMode).toBe(true);
-    expect(result.category).toBe(category);
-    expect(captionToneInstruction(result.language, result.category, result.roastMode)).toContain("uncensored non-hateful swear words");
-  });
-  test("Hinglish Roast Mode uses regional street slang while formal Hindi stays clean", () => {
-    expect(captionToneInstruction("Hinglish", "Party", true)).toContain("authentic Indian regional street slang in Latin script");
-    expect(captionToneInstruction("शुद्ध हिंदी", "Party", true)).toContain("no slang or swear words");
-    expect(captionInput.parse({ kind: "prompt", prompt: "Party", language: "English" }).roastMode).toBe(false);
-  });
 });

@@ -115,7 +115,6 @@ function QuotelyApp() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [category, setCategory] = useState<string>("Attitude");
   const [roastMode, setRoastMode] = useState(false);
-  const [generationMode, setGenerationMode] = useState<"media" | "prompt">("media");
   const [language, setLanguage] = useState<CaptionLanguage>("शुद्ध हिंदी");
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
@@ -226,25 +225,19 @@ function QuotelyApp() {
           {(tab === "home" || tab === "ai") && <>
             <div className="mt-3 flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground">Language</span>
-              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={setRoastMode} /></label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={(checked) => { setRoastMode(checked); if (!checked && category === "Roast") setCategory("Attitude"); }} /></label>
             </div>
             <LanguageSelector value={language} onChange={setLanguage} />
           </>}
           {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { if (item === "Roast") setRoastMode(true); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
+            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { setCategory(item); setRoastMode(item === "Roast"); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
           </div>}
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 pb-28 pt-4">
         {tab === "ai" ? (
-          <>
-            <div role="group" aria-label="Generation source" className="mx-auto mb-3 flex max-w-2xl gap-2">
-              <Button variant={generationMode === "media" ? "ink" : "outline"} size="sm" aria-pressed={generationMode === "media"} onClick={() => setGenerationMode("media")}><ImagePlus /> Photo / Video</Button>
-              <Button variant={generationMode === "prompt" ? "ink" : "outline"} size="sm" aria-pressed={generationMode === "prompt"} onClick={() => setGenerationMode("prompt")}><Type /> Text</Button>
-            </div>
-            <PhotoCaption key={generationMode} mode={generationMode} language={language} category={category} roastMode={roastMode} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />
-          </>
+          <PhotoCaption language={language} category={roastMode ? "Roast" : category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />
         ) : tab === "fonts" ? (
           <FontStudio onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} />
         ) : tab === "hashtags" ? (
@@ -253,7 +246,10 @@ function QuotelyApp() {
           <Creator text={creatorText} setText={setCreatorText} font={creatorFont} setFont={setCreatorFont} background={creatorBg} setBackground={setCreatorBg} onReset={() => { setCreatorText(""); setCreatorFont("Fraunces"); setCreatorBg(0); }} onDownload={() => downloadStory(creatorText, getCreatorBackground(creatorBg)?.colors ?? [], "my-caption-generate-ai.png", creatorFont)} />
         ) : (
           <>
-            <section className="mt-1">
+            {tab === "home" && <PhotoCaption mode="prompt" language={language} category={roastMode ? "Roast" : category} onCopy={async (text, message) => { await navigator.clipboard.writeText(text); notify(message); }} onWhatsApp={(text) => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")} />}
+
+            <details open={tab === "saved"} className={cn(tab === "home" ? "mt-4" : "mt-1")}>
+              <summary className="cursor-pointer py-2 text-sm font-semibold text-muted-foreground">{tab === "saved" ? "Saved Favorites" : "Trending captions"}</summary>
               {tab === "home" && <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search quotes" placeholder="Search captions…" className="my-2 w-full rounded-lg border border-input bg-background p-2 text-sm" />}
               <div className="flex items-end justify-between gap-4">
                 <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tab === "saved" ? "Your collection" : "Fresh picks"}</p><h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium">{tab === "saved" ? <Heart className="size-5 fill-primary text-primary" /> : <Flame className="size-5 fill-primary text-primary" />}{tab === "saved" ? "Saved Favorites" : "Trending Now"}</h1></div>
@@ -262,7 +258,7 @@ function QuotelyApp() {
               {visibleQuotes.length ? <div className="mt-4 grid gap-6 md:grid-cols-2">
                 {visibleQuotes.map((quote, index) => <QuoteCard key={quote.id} quote={quote} favorite={favorites.includes(quote.id)} delay={Math.min(index, 3)} onCopy={() => copyText(quote.text)} onFavorite={() => toggleFavorite(quote.id)} onCreateImage={() => setMakerQuote(quote)} onShare={(channel) => share(quote, channel)} />)}
               </div> : <div className="mt-12 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-xl">No captions found</h2><p className="mt-1 text-sm text-muted-foreground">Try another keyword or category.</p></div>}
-            </section>
+            </details>
           </>
         )}
       </main>
