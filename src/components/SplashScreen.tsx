@@ -1,31 +1,41 @@
 import { useEffect, useState } from "react";
-import logoUrl from "@/assets/kp-logo.png";
-const logo = { url: logoUrl };
+import wordmark from "@/assets/caption-craze-wordmark.png.asset.json";
+import emblem from "@/assets/caption-craze-emblem.png.asset.json";
+import { Button } from "@/components/ui/button";
+import { SPLASH_DURATION_MS, SPLASH_FADE_MS } from "@/lib/splash-settings";
 
 export function SplashScreen() {
   const [phase, setPhase] = useState<"show" | "fade" | "done">("show");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("fade"), 2500);
-    const t2 = setTimeout(() => setPhase("done"), 3000);
+    const t1 = setTimeout(() => setPhase("fade"), SPLASH_DURATION_MS);
     return () => {
       clearTimeout(t1);
-      clearTimeout(t2);
     };
   }, []);
+
+  useEffect(() => {
+    if (phase !== "fade") return;
+    const timer = setTimeout(() => setPhase("done"), SPLASH_FADE_MS);
+    return () => clearTimeout(timer);
+  }, [phase]);
 
   if (phase === "done") return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-[1000000] flex flex-col gap-6 items-center justify-center bg-background text-foreground transition-opacity duration-500 select-none ${phase === "fade" ? "opacity-0" : "opacity-100"}`}
-      aria-label="Caption Generate AI — Created by Piyush KP"
-      role="img"
+    <Button
+      variant="ghost"
+      onClick={() => setPhase("fade")}
+      className={`splash-screen ${phase === "fade" ? "splash-fade" : ""}`}
+      aria-label="Enter Caption Craze"
     >
-      <img src={logo.url} alt="KP logo" className="size-28 object-contain" />
-      <span className="font-body text-2xl font-bold">Caption Generate AI</span>
-      <span className="text-sm text-muted-foreground">Created by Piyush KP</span>
-    </div>
+      <span className="splash-content">
+        <img src={wordmark.url} alt="Caption Craze" className="splash-wordmark" />
+        <img src={emblem.url} alt="Multicolor KP emblem" className="splash-emblem" />
+        <span className="splash-credit">Created by Piyush KP</span>
+        <span className="splash-subtext">No Login Needed • 100% Free</span>
+      </span>
+    </Button>
   );
 }
 
