@@ -1,6 +1,6 @@
 # Home roast mode cleanup
-- [ ] Remove the Roast Mode switch from the home screen, keeping it in the AI caption generator.
-- [ ] Verify home and AI Photo tabs in the preview.
+- [x] Remove the Roast Mode switch from the home screen, keeping it in the AI caption generator.
+- [x] Verify home and AI Photo tabs in the preview.
 
 # Caption Craze design update
 - [x] Match supplied splash with two-second or tap dismissal.
