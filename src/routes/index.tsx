@@ -23,9 +23,9 @@ import {
 } from "lucide-react";
 import { downloadCanvas, renderStoryCanvas } from "@/lib/story-canvas";
 import { useEffect, useMemo, useRef, useState } from "react";
-import kpLogoUrl from "@/assets/kp-logo.png";
-const kpLogoAsset = { url: kpLogoUrl };
+import kpLogoAsset from "@/assets/caption-craze-header.png.asset.json";
 const kpLogo = kpLogoAsset.url;
+import { DailyQuote } from "@/components/DailyQuote";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { quotesByCategory } from "@/lib/quotes-data";
@@ -100,9 +100,9 @@ const getCreatorBackground = (index: number) => creatorBackgrounds[index] ?? cre
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Caption Generate AI" },
+      { title: "Caption Craze" },
       { name: "description", content: "Create two to three tailored captions from text, photos and videos in English, Hinglish, Arabic, European languages or Hindi." },
-      { property: "og:title", content: "Caption Generate AI" },
+      { property: "og:title", content: "Caption Craze" },
       { property: "og:description", content: "Explore rich caption categories and multilingual AI captions with a dedicated Roast Mode." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -192,7 +192,7 @@ function QuotelyApp() {
       return;
     }
     if (navigator.share) {
-      try { await navigator.share({ text: quote.text, title: "Caption Generate AI" }); } catch { return; }
+      try { await navigator.share({ text: quote.text, title: "Caption Craze" }); } catch { return; }
     } else {
       await copyText(quote.text);
       notify("Caption copied — paste it in Instagram");
@@ -210,28 +210,28 @@ function QuotelyApp() {
         <div className="mx-auto max-w-5xl px-4 pb-3 pt-3">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <Button variant="ghost" className="h-auto min-w-0 justify-start gap-2 p-0 text-left hover:bg-transparent" onClick={() => setActiveTab("home")} aria-label="Go home">
-              <img src={kpLogo} alt="KP logo" width={720} height={697} className="size-11 shrink-0 rounded-xl object-contain drop-shadow-lg" />
-              <span className="min-w-0 leading-none"><span className="block font-body text-sm font-bold leading-tight">Caption Generate AI</span><span className="mt-1 block truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Captions, Quotes & Hashtags</span></span>
+              <img src={kpLogo} alt="KP logo" width={720} height={697} className="size-11 sm:size-14 shrink-0 object-contain drop-shadow-lg" />
+              <span className="min-w-0 leading-none"><span className="block font-display text-lg sm:text-2xl font-medium leading-tight">Caption Craze</span><span className="mt-1 block truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">CAPTIONS, QUOTES & HASHTAGS...</span></span>
             </Button>
             <div className="flex shrink-0 items-center gap-1.5">
               <Button variant="glassIcon" size="icon" className="rounded-full" aria-label="Saved favorites" onClick={() => setActiveTab("saved")}><Heart className={cn(favorites.length > 0 && "fill-primary text-primary")} /></Button>
               <Button variant="ink" size="icon" className="rounded-full" aria-label="Toggle color theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon /> : <Sun />}</Button>
             </div>
           </div>
-          {(tab === "saved" || tab === "hashtags") && <label className="mt-3 flex items-center gap-2 rounded-full border border-glass-border bg-glass px-3 py-2.5 shadow-glass backdrop-blur-xl">
+          {(tab === "home" || tab === "saved" || tab === "hashtags") && <label className="mt-4 flex items-center gap-3 rounded-full border border-glass-border bg-card px-4 py-3.5 shadow-glass backdrop-blur-xl">
             <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword…" aria-label="Search quotes" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword..." aria-label="Search quotes" />
           </label>}
+          {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { if (item === "Roast") setRoastMode((on) => !on); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
+          </div>}
           {(tab === "home" || tab === "ai") && <>
-            <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="mt-2 flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground">Language</span>
               <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={setRoastMode} /></label>
             </div>
             <LanguageSelector value={language} onChange={setLanguage} />
           </>}
-          {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { if (item === "Roast") setRoastMode((on) => !on); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
-          </div>}
         </div>
       </header>
 
@@ -247,26 +247,25 @@ function QuotelyApp() {
         ) : (
           <>
 
-            <details open={tab === "saved"} className={cn(tab === "home" ? "mt-4" : "mt-1")}>
-              <summary className="cursor-pointer py-2 text-sm font-semibold text-muted-foreground">{tab === "saved" ? "Saved Favorites" : "Trending captions"}</summary>
-              {tab === "home" && <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search quotes" placeholder="Search captions…" className="my-2 w-full rounded-lg border border-input bg-background p-2 text-sm" />}
+            <section className="mt-1">
+              {tab === "home" && <DailyQuote onCopy={copyText} notify={notify} />}
               <div className="flex items-end justify-between gap-4">
-                <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tab === "saved" ? "Your collection" : "Fresh picks"}</p><h1 className="mt-1 flex items-center gap-2 font-display text-2xl font-medium">{tab === "saved" ? <Heart className="size-5 fill-primary text-primary" /> : <Flame className="size-5 fill-primary text-primary" />}{tab === "saved" ? "Saved Favorites" : "Trending Now"}</h1></div>
+                <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tab === "saved" ? "Your collection" : "Fresh picks"}</p><h1 className="mt-1 flex items-center gap-2 font-display text-3xl sm:text-4xl font-medium">{tab === "saved" ? <Heart className="size-5 fill-primary text-primary" /> : <Flame className="size-5 fill-primary text-primary" />}{tab === "saved" ? "Saved Favorites" : "Trending Now"}</h1></div>
                 {tab === "home" && <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">Live <span className="size-1.5 rounded-full bg-primary" /></span>}
               </div>
               {visibleQuotes.length ? <div className="mt-4 grid gap-6 md:grid-cols-2">
                 {visibleQuotes.map((quote, index) => <QuoteCard key={quote.id} quote={quote} favorite={favorites.includes(quote.id)} delay={Math.min(index, 3)} onCopy={() => copyText(quote.text)} onFavorite={() => toggleFavorite(quote.id)} onCreateImage={() => setMakerQuote(quote)} onShare={(channel) => share(quote, channel)} />)}
               </div> : <div className="mt-12 text-center"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-display text-xl">No captions found</h2><p className="mt-1 text-sm text-muted-foreground">Try another keyword or category.</p></div>}
-            </details>
+            </section>
           </>
         )}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-[999999] border-t border-border bg-background shadow-[0_-8px_30px_oklch(0.2_0.04_270/14%)]" aria-label="Main navigation" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+      <nav className="fixed inset-x-0 bottom-0 z-[999999] border-t border-border bg-background shadow-glass" aria-label="Main navigation" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto grid max-w-xl grid-cols-6 gap-1 px-3 pt-2">
           <TabButton active={tab === "home"} label="Home" icon={<Home />} onClick={() => setActiveTab("home")} />
           <TabButton active={tab === "hashtags"} label="Hashtags" icon={<Hash />} onClick={() => setActiveTab("hashtags")} />
-          <TabButton active={tab === "ai"} label="Media AI" icon={<ScanSearch />} onClick={() => setActiveTab("ai")} />
+          <TabButton active={tab === "ai"} label="AI Photo" icon={<ScanSearch />} onClick={() => setActiveTab("ai")} />
           <TabButton active={tab === "fonts"} label="Fonts" icon={<Type />} onClick={() => setActiveTab("fonts")} />
           <TabButton active={tab === "saved"} label="Saved" icon={<Heart />} onClick={() => setActiveTab("saved")} />
           <TabButton active={tab === "create"} label="Create" icon={<WandSparkles />} onClick={() => setActiveTab("create")} />
@@ -307,7 +306,7 @@ function Hashtags({ groups, onCopyAll }: { groups: HashtagGroup[]; onCopyAll: (g
 
 function QuoteCard({ quote, favorite, delay, onCopy, onFavorite, onCreateImage, onShare }: { quote: Quote; favorite: boolean; delay: number; onCopy: () => void; onFavorite: () => void; onCreateImage: () => void; onShare: (channel: "whatsapp" | "instagram") => void }) {
   return <article className="rise" style={{ animationDelay: `${delay * 70}ms` }}>
-    <div className={cn("relative min-h-52 overflow-hidden rounded-2xl p-5 text-story-foreground shadow-elevated", quote.gradient)}>
+    <div className={cn("relative min-h-60 overflow-hidden rounded-[20px] p-5 sm:p-7 text-story-foreground shadow-elevated", quote.gradient)}>
       <div className="relative flex h-full min-h-42 flex-col justify-between"><div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80"><span>{quote.category}</span><span className="flex items-center gap-2">{quote.views} views<Button variant="ghost" size="icon" aria-label={favorite ? "Remove from saved" : "Save caption"} onClick={onFavorite} className="grid size-8 place-items-center rounded-full bg-story-soft transition active:scale-90"><Heart className={cn("size-4", favorite && "fill-current")} /></Button></span></div><div><p className={cn("mt-5 text-[24px] font-medium leading-tight", /[\u0900-\u097F]/.test(quote.text) ? "font-hindi" : "font-display")}>“{quote.text}”</p><p className={cn("mt-2 text-sm opacity-80", /[\u0900-\u097F]/.test(quote.translation) && "font-hindi")}>{quote.translation}</p></div></div>
     </div>
     <div className="mt-2 grid grid-cols-3 gap-1.5">
@@ -336,5 +335,5 @@ function Creator({ text, setText, font, setFont, background, setBackground, onDo
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
-  return <Button variant="ghost" className={cn("h-12 flex-col gap-0.5 rounded-xl text-[10px]", active ? "bg-foreground text-background hover:bg-foreground hover:text-background" : "text-muted-foreground")} onClick={onClick}>{icon}{label}</Button>;
+  return <Button variant="ghost" className={cn("h-14 sm:h-16 min-w-0 flex-col gap-1 rounded-2xl px-0 text-[10px] sm:text-xs", active ? "bg-foreground text-background hover:bg-foreground hover:text-background" : "text-muted-foreground")} onClick={onClick}>{icon}{label}</Button>;
 }

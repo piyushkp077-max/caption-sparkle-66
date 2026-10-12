@@ -15,3 +15,5 @@
 - Centralize caption count bounds, tone rules and output validation in caption-settings and enforce them in both the stream handler and client; this prevents text and media generation from diverging.
 - Preserve original quote category identities and use one shared multilingual category catalog for text and media controls; this keeps restored filters and generation validation aligned.
 - Pre-optimize the language-bar switch alongside React and React DOM in Vite; this prevents late dependency discovery from mixing React module generations in the preview.
+
+- Keep the splash timing in splash-settings and the daily quote in a focused Home component; this makes startup behavior testable without changing caption generation.
