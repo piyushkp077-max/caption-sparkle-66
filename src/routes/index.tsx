@@ -223,12 +223,16 @@ function QuotelyApp() {
             <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder="Search captions, mood, keyword..." aria-label="Search quotes" />
           </label>}
           {(tab === "home" || tab === "ai") && <div role="group" aria-label="Caption category" className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categories.map((item) => <Button key={item} aria-pressed={item === "Roast" ? roastMode : category === item} variant={(item === "Roast" ? roastMode : category === item) ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !roastMode && "bg-background")} onClick={() => { if (item === "Roast") setRoastMode((on) => !on); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>)}
+            {categories.map((item) => {
+              const roastToggle = item === "Roast" && tab === "ai";
+              const active = roastToggle ? roastMode : category === item;
+              return <Button key={item} aria-pressed={active} variant={active ? "ink" : item === "Roast" ? "outline" : "glass"} size="sm" className={cn("h-9 shrink-0 rounded-full px-3 text-xs", item === "Roast" && "sticky left-0 z-10", item === "Roast" && !active && "bg-background")} onClick={() => { if (roastToggle) setRoastMode((on) => !on); else setCategory(item); }}>{item === "Roast" && <Flame className="size-3.5" />}{item}</Button>;
+            })}
           </div>}
           {(tab === "home" || tab === "ai") && <>
             <div className="mt-2 flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground">Language</span>
-              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={setRoastMode} /></label>
+              {tab === "ai" && <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold"><Flame className="size-4 text-primary" /> Roast Mode <Switch aria-label="Roast Mode" checked={roastMode} onCheckedChange={setRoastMode} /></label>}
             </div>
             <LanguageSelector value={language} onChange={setLanguage} />
           </>}
