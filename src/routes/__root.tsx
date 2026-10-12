@@ -82,10 +82,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Caption Generate AI" },
+      { title: "Caption Craze" },
       { name: "description", content: "Discover, save, share, and design trending Hindi and English captions." },
-      { name: "author", content: "Caption Generate AI" },
-      { property: "og:title", content: "Caption Generate AI" },
+      { name: "author", content: "Caption Craze" },
+      { property: "og:title", content: "Caption Craze" },
       { property: "og:description", content: "Trending Hindi and English captions, shareable quote cards, and a custom quote creator." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
